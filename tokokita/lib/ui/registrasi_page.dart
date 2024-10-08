@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; 
+import 'package:tokokita/bloc/registrasi_bloc.dart';
+import 'package:tokokita/widget/sucess_dialog.dart';
+import 'package:tokokita/widget/warning_dialog.dart';
 
 class RegistrasiPage extends StatefulWidget {
-  const RegistrasiPage({Key? key}) : super(key: key);
+  const RegistrasiPage({super.key});
 
   @override
   _RegistrasiPageState createState() => _RegistrasiPageState();
@@ -19,7 +22,7 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Registrasi"),
+        title: const Text("Registrasi"), 
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -34,6 +37,8 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
                 _passwordTextField(),
                 _passwordKonfirmasiTextField(),
                 _buttonRegistrasi(),
+                // You can add a loading indicator if _isLoading is true
+                if (_isLoading) const CircularProgressIndicator(),
               ],
             ),
           ),
@@ -41,7 +46,7 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
       ),
     );
   }
-
+ 
   // Membuat Textbox Nama
   Widget _namaTextField() {
     return TextFormField(
@@ -57,11 +62,11 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
     );
   }
 
-  // Membuat Textbox Email
+  // Membuat Textbox email
   Widget _emailTextField() {
     return TextFormField(
       decoration: const InputDecoration(labelText: "Email"),
-      keyboardType: TextInputType.emailAddress,
+      keyboardType: TextInputType.emailAddress, 
       controller: _emailTextboxController,
       validator: (value) {
         // validasi harus diisi
@@ -80,7 +85,7 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
     );
   }
 
-  // Membuat Textbox Password
+  // Membuat Textbox password
   Widget _passwordTextField() {
     return TextFormField(
       decoration: const InputDecoration(labelText: "Password"),
@@ -96,13 +101,13 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
       },
     );
   }
-
-  // Membuat Textbox Konfirmasi Password
+ 
+  // membuat textbox Konfirmasi Password
   Widget _passwordKonfirmasiTextField() {
     return TextFormField(
       decoration: const InputDecoration(labelText: "Konfirmasi Password"),
       keyboardType: TextInputType.text,
-      obscureText: true,
+      obscureText: true, 
       validator: (value) {
         // jika inputan tidak sama dengan password
         if (value != _passwordTextboxController.text) {
@@ -112,15 +117,45 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
       },
     );
   }
-
+ 
   // Membuat Tombol Registrasi
-  Widget _buttonRegistrasi() {
+   Widget _buttonRegistrasi() {
     return ElevatedButton(
-      child: const Text("Registrasi"),
-      onPressed: () {
-        var validate = _formKey.currentState!.validate();
-        // Handle the registration logic here
-      },
-    );
+        child: const Text("Registrasi"),
+        onPressed: () {
+          var validate = _formKey.currentState!.validate();
+          if (validate) {
+            if (!_isLoading) _submit();
+          }
+        });
+  }
+
+  void _submit() {
+    _formKey.currentState!.save();
+    setState(() {
+      _isLoading = true;
+    });
+    RegistrasiBloc.registrasi(
+            nama: _namaTextboxController.text,
+            email: _emailTextboxController.text,
+            password: _passwordTextboxController.text)
+        .then((value) {
+      showDialog( 
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => SuccessDialog(
+                description: "Registrasi berhasil, silahkan login",
+                okClick: () {
+                  Navigator.pop(context);
+                },
+              ));
+    }, onError: (error) {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => const WarningDialog(
+                description: "Registrasi gagal, silahkan coba lagi",
+              ));
+    }); 
   }
 }
